@@ -4,8 +4,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/delta-crdt/aworset"
-	"github.com/delta-crdt/broadcaster"
+	"github.com/sbward/delta-crdt/aworset"
+	"github.com/sbward/delta-crdt/broadcaster"
 )
 
 var NoBroadcastHandler = errors.New("No broadcast handler")

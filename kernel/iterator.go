@@ -102,12 +102,12 @@ func (a orderedPair) Less(i, j int) bool {
 	return pairCompair(ai, aj)
 }
 
-type casualContextIterator struct {
+type causalContextIterator struct {
 	values  orderedPair
 	current int
 }
 
-func CreateCCIterator(source map[string]int32) casualContextIterator {
+func CreateCCIterator(source map[string]int32) causalContextIterator {
 	vals := make(orderedPair, 0, len(source))
 
 	for k, v := range source {
@@ -116,17 +116,17 @@ func CreateCCIterator(source map[string]int32) casualContextIterator {
 
 	sort.Sort(vals)
 
-	return casualContextIterator{values: vals}
+	return causalContextIterator{values: vals}
 }
 
-func (it casualContextIterator) hasMore() bool {
+func (it causalContextIterator) hasMore() bool {
 	return it.current < len(it.values)
 }
 
-func (it *casualContextIterator) next() {
+func (it *causalContextIterator) next() {
 	it.current++
 }
 
-func (it casualContextIterator) val() Pair {
+func (it causalContextIterator) val() Pair {
 	return it.values[it.current]
 }

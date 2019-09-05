@@ -5,12 +5,12 @@ import (
 )
 
 type ContextData struct {
-	CasualContext map[string]int32
+	CausalContext map[string]int32
 	Cloud         []Pair
 }
 
 type DotContext struct {
-	casualContext map[string]int32
+	causalContext map[string]int32
 	dotCloud      map[Pair]bool
 }
 
@@ -22,7 +22,7 @@ func (ctx DotContext) GetData() ContextData {
 	}
 
 	data := ContextData{
-		CasualContext: ctx.casualContext,
+		CausalContext: ctx.causalContext,
 		Cloud:         cloud,
 	}
 
@@ -31,8 +31,8 @@ func (ctx DotContext) GetData() ContextData {
 
 func (ctx DotContext) Copy() *DotContext {
 	cp := NewDotContext()
-	for k, v := range ctx.casualContext {
-		cp.casualContext[k] = v
+	for k, v := range ctx.causalContext {
+		cp.causalContext[k] = v
 	}
 
 	for k, v := range ctx.dotCloud {
@@ -50,20 +50,20 @@ func NewFromData(data ContextData) *DotContext {
 	}
 
 	return &DotContext{
-		casualContext: data.CasualContext,
+		causalContext: data.CausalContext,
 		dotCloud:      dotCloud,
 	}
 }
 
 func NewDotContext() *DotContext {
 	return &DotContext{
-		casualContext: make(map[string]int32),
+		causalContext: make(map[string]int32),
 		dotCloud:      make(map[Pair]bool),
 	}
 }
 
 func (ctx DotContext) dotin(p Pair) bool {
-	val, ok := ctx.casualContext[p.First]
+	val, ok := ctx.causalContext[p.First]
 	if ok {
 		if p.Second <= val {
 			return true
@@ -83,16 +83,16 @@ func (ctx DotContext) compact() {
 		needMore = false
 
 		for val := range ctx.dotCloud {
-			cv, exist := ctx.casualContext[val.First]
+			cv, exist := ctx.causalContext[val.First]
 			if !exist {
 				if val.Second == 1 {
-					ctx.casualContext[val.First] = val.Second
+					ctx.causalContext[val.First] = val.Second
 					delete(ctx.dotCloud, val)
 					needMore = true
 				}
 			} else {
 				if val.Second == cv+1 {
-					ctx.casualContext[val.First] = cv + 1
+					ctx.causalContext[val.First] = cv + 1
 					delete(ctx.dotCloud, val)
 					needMore = true
 				} else {
@@ -107,12 +107,12 @@ func (ctx DotContext) compact() {
 
 func (ctx DotContext) makeDot(id string) Pair {
 	pair := Pair{First: id, Second: 1}
-	v, ok := ctx.casualContext[id]
+	v, ok := ctx.causalContext[id]
 	if ok {
 		pair.Second = v + 1
-		ctx.casualContext[id] = v + 1
+		ctx.causalContext[id] = v + 1
 	} else {
-		ctx.casualContext[id] = pair.Second
+		ctx.causalContext[id] = pair.Second
 	}
 
 	return pair
@@ -129,15 +129,15 @@ func (ctx DotContext) Join(other *DotContext) {
 	if &ctx == other {
 		return
 	}
-	it := CreateCCIterator(ctx.casualContext)
-	ito := CreateCCIterator(other.casualContext)
+	it := CreateCCIterator(ctx.causalContext)
+	ito := CreateCCIterator(other.causalContext)
 
 	for it.hasMore() || ito.hasMore() {
 		if it.hasMore() && (!ito.hasMore() || it.val().First < ito.val().First) {
 			it.next()
 		} else if ito.hasMore() && !it.hasMore() || ito.val().First < it.val().First {
 			pair := ito.val()
-			ctx.casualContext[pair.First] = pair.Second
+			ctx.causalContext[pair.First] = pair.Second
 			ito.next()
 		} else if it.hasMore() && it.hasMore() {
 			cpair := it.val()
@@ -147,7 +147,7 @@ func (ctx DotContext) Join(other *DotContext) {
 				mx = opair.Second
 			}
 
-			ctx.casualContext[cpair.First] = mx
+			ctx.causalContext[cpair.First] = mx
 			it.next()
 			ito.next()
 		}
